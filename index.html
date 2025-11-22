@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Münze werfen</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f6faff; text-align:center; margin-top:30px; }
+    h1 { color:#3a6ea5; font-size:32px; margin-bottom:20px; }
+    .card { display:inline-block; padding:20px; background:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1); border-radius:20px; }
+    button { font-size:22px; padding:12px 25px; border:none; border-radius:18px; cursor:pointer; margin:10px; }
+    #wirfBtn { background:#6ecb63; color:white; }
+    #resetBtn { background:#ff6b6b; color:white; }
+    input { font-size:20px; width:80px; padding:5px; border-radius:10px; border:2px solid #3a6ea5; }
+    #info { margin-top:10px; font-size:20px; color:#333; }
+    #coin { width:140px; height:140px; margin:10px auto; }
+  </style>
+</head>
+<body>
+
+  <h1>Münze werfen</h1>
+
+  <div class="card">
+    <label style="font-size:20px;color:#3a6ea5;">
+      Anzahl:
+      <input id="anzahl" type="number" min="1" value="1">
+    </label>
+
+    <div>
+      <button id="wirfBtn">Wirf</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <div id="info">Noch kein Wurf.</div>
+    <div id="coin"></div>
+
+    <canvas id="chart" width="300" height="300" style="margin-top:15px;"></canvas>
+  </div>
+
+  <script>
+    let kopf = 0, zahl = 0;
+
+    const input = document.getElementById("anzahl");
+    const info = document.getElementById("info");
+    const coin = document.getElementById("coin");
+    const canvas = document.getElementById("chart");
+    const ctx = canvas.getContext("2d");
+
+    const svgKopf = `
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="90" fill="#f7d794" stroke="#c9a24f" stroke-width="10"/>
+        <text x="50%" y="55%" font-size="70" fill="#8e5a2a" font-family="Arial" text-anchor="middle">K</text>
+      </svg>
+    `;
+    const svgZahl = `
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="90" fill="#d1ecf1" stroke="#4aa3b0" stroke-width="10"/>
+        <text x="50%" y="55%" font-size="70" fill="#2f6581" font-family="Arial" text-anchor="middle">Z</text>
+      </svg>
+    `;
+
+    function drawChart() {
+      const total = kopf + zahl;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!total) {
+        ctx.font = "18px sans-serif";
+        ctx.fillStyle = "#888";
+        ctx.fillText("Noch keine Würfe", 85, 150);
+        return;
+      }
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = 120;
+      const angleKopf = 2 * Math.PI * (kopf / total);
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radius, 0, angleKopf);
+      ctx.closePath();
+      ctx.fillStyle = "#87cefa";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radius, angleKopf, 2 * Math.PI);
+      ctx.closePath();
+      ctx.fillStyle = "#f7d794";
+      ctx.fill();
+
+      ctx.fillStyle = "#3a6ea5";
+      ctx.font = "18px sans-serif";
+      ctx.fillText("Kopf: " + kopf, 10, 25);
+      ctx.fillText("Zahl: " + zahl, 10, 50);
+    }
+
+    document.getElementById("wirfBtn").onclick = async function () {
+      const n = Math.max(1, parseInt(input.value) || 1);
+
+      for (let i = 0; i < n; i++) {
+        const wurf = Math.random() < 0.5 ? "Kopf" : "Zahl";
+
+        if (wurf === "Kopf") { kopf++; coin.innerHTML = svgKopf; }
+        else { zahl++; coin.innerHTML = svgZahl; }
+
+        info.textContent = "Letztes Ergebnis: " + wurf +
+          " | Kopf: " + kopf +
+          " | Zahl: " + zahl +
+          " | Gesamt: " + (kopf + zahl);
+
+        drawChart();
+
+        await new Promise(r => setTimeout(r, 70)); // Animation
+      }
+    };
+
+    document.getElementById("resetBtn").onclick = function () {
+      kopf = 0; zahl = 0;
+      coin.innerHTML = "";
+      info.textContent = "Zurückgesetzt.";
+      drawChart();
+    };
+
+    drawChart();
+  </script>
+
+</body>
+</html>
